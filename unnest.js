@@ -1,7 +1,7 @@
 //* TITLE Unnest **//
 //* VERSION 1.0 REV A **//
 //* DESCRIPTION Flattens Tumblr's nested comments so you can read each poster's URL and comment in sequential order, as God intended. **//
-//* DEVELOPER butts mcgee **//
+//* DEVELOPER molgin **//
 //* FRAME false **//
 //* BETA false **//
 
@@ -26,13 +26,12 @@ XKit.extensions.unnest = new Object({
 	run: function() {
 		this.running = true;
 		if (XKit.extensions.unnest.preferences.toggle.value) {
-			// OK so toggle() is deprecated/removed.
-			// So here's a thought.
-			// Initialize a variable for a click counter (unique per button, not sure how??)
-			// Check the value of the counter, if even unNest, if odd reNest, in either case increment the counter
+			
 		}
 		else {
+			// Add post listener (enables extension to apply to newly loaded posts when endless scrolling is on)
 			XKit.post_listener.add("unnest", XKit.extensions.unnest.applyToAll);
+
 			XKit.extensions.unnest.applyToAll();
 			//XKit.extensions.unnest.destroy();
 		};
@@ -43,7 +42,7 @@ XKit.extensions.unnest = new Object({
 		XKit.post_listener.remove("unnest");
 		console.log("Hello from destroy()!");
 		// Iterate over posts and reNest them
-		$(XKit.extensions.unnest.posts).each( function (i, obj){
+		$(".post:not('.new_post_buttons'):not('#tumblr_radar')").each( function (i, obj){
 			XKit.extensions.unnest.reNest(obj);
 		});
 	},
@@ -129,8 +128,10 @@ XKit.extensions.unnest = new Object({
 
 	applyToAll: function(){
 		// Iterate over posts
-		$(XKit.extensions.unnest.posts).each( function (i, obj){
+		$(".post:not('.new_post_buttons'):not('#tumblr_radar')").each( function (i, obj){
 			// Get post info
+			console.log("obj =");
+			console.log(obj);
 			var origPostObject = XKit.interface.post(obj);
 			console.log("origPostObject =");
 			console.log(origPostObject);
