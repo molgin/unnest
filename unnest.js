@@ -39,6 +39,7 @@ XKit.extensions.unnest = new Object({
 
 	destroy: function() {
 		this.running = false;
+		// Remove post listener
 		XKit.post_listener.remove("unnest");
 		console.log("Hello from destroy()!");
 		// Iterate over posts and reNest them
@@ -59,10 +60,16 @@ XKit.extensions.unnest = new Object({
 			// Set variable to the results of the same selection but testing for "/post/" instead of "tumblr.com" to catch users with custom domains. These children may not exist but that's intended.
 			$blockKids = $obj.children("p:contains(':'):has(a[href*='/post/']):not(:contains(' '))+blockquote");
 		};
+		// Define variable as object's direct children that are blockquotes, as long as they have a previous adjacent p element that has an a element child of class .tumblr_blog
+		// var $blockKids = $obj.children("p:contains(':'):has(a[href*='tumblr.com']):not(:contains(' '))+blockquote");
 		// If object has a direct blockquote child
-		if ($blockKids.length != 0) {
+		if ($blockKids.length > 0) {
 			// Run function recursively on that child
 			return XKit.extensions.unnest.getInnerQuote($blockKids);
+		}
+		// Extra test for ask posts whose post_body divs contain extra divs
+		else if ($obj.children("div.answer.post_info").length > 0) {
+			return XKit.extensions.unnest.getInnerQuote($obj.children("div.answer.post_info"));
 		}
 		else {
 			// If current object is a blockquote
@@ -80,6 +87,8 @@ XKit.extensions.unnest = new Object({
 	unNest: function($obj) {
 		// Define variable for object's innermost blockquote
 		var $innerQuote = XKit.extensions.unnest.getInnerQuote($obj);
+		console.log("$innerQuote =");
+		console.log($innerQuote);
 		// Only make changes if there's actually an inner quote to move
 		if ($innerQuote != null) {
 			// Add a new div after the object
@@ -98,16 +107,27 @@ XKit.extensions.unnest = new Object({
 				$innerQuote = XKit.extensions.unnest.getInnerQuote($obj);
 			};
 			// If there's anything left in the object (new unattributed comments)
-			if ($obj.children().length != 0) {
-				// Stick them in a variable
-				$newComment = $obj.children();
+			if ($obj.contents().length > 0) {
+				if ($obj.children("div.note_wrapper").length > 0) {
+					// Stick them in a variable
+					$newComment = $obj.children("div.answer").contents();
+				}
+				else {
+					// Stick them in a variable
+					$newComment = $obj.contents();
+				}
 				// Remove them from the object
 				$newComment.remove();
 				// Add them to the new div
 				$nextDiv.append($newComment);
 			};
-			// Put everything from the new div back in the original object
-			$obj.append($nextDiv.children());
+			if ($obj.children("div.answer").length > 0) {
+				$obj.children("div.answer.post_info").append($nextDiv.contents());
+			}
+			else {
+				// Put everything from the new div back in the original object
+				$obj.append($nextDiv.contents());
+			}
 			// Get rid of the new div
 			$nextDiv.remove();
 		};

@@ -1,0 +1,15 @@
+.xkit_unnest_button.xkit_new_dashboard:after,
+.xkit_unnest_button { 
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEtJREFUeNpiZICA/wz4ASMDEYCJYbACRiRvMlLqXZp48z81DGHBYijZ3qWqN1koSVfEuuw/NV1GjqGMVA2zUcOGk2Es5ORBXAAgwAD64ggp0tpGJAAAAABJRU5ErkJggg==') !important; 
+	background-repeat: no-repeat !important; 
+	width: 20px !important; height: 20px; 
+	background-size: auto auto !important; 
+}
+ 
+.xkit_unnest_button.xkit_new_dashboard:after {
+	margin-top: -9px;	
+}
+ 
+.xkit_unnest_button.xkit_new_dashboard {
+	background: none !important;
+}
