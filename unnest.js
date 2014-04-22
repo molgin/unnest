@@ -26,8 +26,26 @@ XKit.extensions.unnest = new Object({
 	run: function() {
 		this.running = true;
 		if (XKit.extensions.unnest.preferences.toggle.value) {
+			XKit.interface.create_control_button("xkit-unnest", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEtJREFUeNpiZICA/wz4ASMDEYCJYbACRiRvMlLqXZp48z81DGHBYijZ3qWqN1koSVfEuuw/NV1GjqGMVA2zUcOGk2Es5ORBXAAgwAD64ggp0tpGJAAAAABJRU5ErkJggg==", "UnNest", function() {
+		        var iteration=$(this).data('iteration')||1
+				switch ( iteration) {
+					case 1:
+						alert("odd");
+						break;
+					
+					case 2:
+						alert("even");
+						break;
+				}
+				iteration++;
+				if (iteration>2) iteration=1
+				$(this).data('iteration',iteration)
+				//alert("hello world!");
+				//console.log("this.attr('data-post-id') =");
+				//console.log($(this).attr('data-post-id'));
+			});
 			// Add post listener (enables extension to apply to newly loaded posts when endless scrolling is on)
-			XKit.post_listener.add("unnest", XKit.extensions.unnest.applyToAll);
+			XKit.post_listener.add("unnest", XKit.extensions.unnest.makeButtons);
 			XKit.extensions.unnest.makeButtons();
 
 		}
@@ -173,11 +191,9 @@ XKit.extensions.unnest = new Object({
 	},
 
 	makeButtons: function() {
-		XKit.interface.create_control_button("xkit-unnest", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEtJREFUeNpiZICA/wz4ASMDEYCJYbACRiRvMlLqXZp48z81DGHBYijZ3qWqN1koSVfEuuw/NV1GjqGMVA2zUcOGk2Es5ORBXAAgwAD64ggp0tpGJAAAAABJRU5ErkJggg==", "UnNest", function() {
-	        alert("hello world!");
-		});
-		$(XKit.extensions.unnest.posts).each(function() {
-		    XKit.interface.add_control_button(this, "xkit-unnest", "");
+		$(".post:not('.new_post_buttons'):not('#tumblr_radar'):not('.unnest-button')").each(function() {
+			$(this).addClass('unnest-button');
+			XKit.interface.add_control_button(this, "xkit-unnest", "");
 		});
 	}
-});
+});;
