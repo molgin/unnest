@@ -11,9 +11,9 @@ XKit.extensions.unnest = new Object({
 
 	preferences: {
 		"toggle": {
-			text: "[NOT YET IMPLEMENTED, DON'T TOUCH] Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically",
-			default: true,
-			value: true
+			text: "Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically",
+			default: false,
+			value: false
 		}
 	},
 
@@ -30,12 +30,12 @@ XKit.extensions.unnest = new Object({
 		        	var iteration=$(this).data('iteration')||1
 				switch ( iteration) {
 					case 1:
-						alert("odd");
+						//alert("odd");
 						XKit.extensions.unnest.toggleOne(this);
 						break;
 					
 					case 2:
-						alert("even");
+						//alert("even");
 						XKit.extensions.unnest.toggleTwo(this);
 						break;
 				}
@@ -159,14 +159,22 @@ XKit.extensions.unnest = new Object({
 	reNest: function($obj) {
 		// Get post info
 		var origPostObject = XKit.interface.post($obj);
-		// Get post's original content by looking it up by post id in the postContent object
-		var thisPostContent = XKit.extensions.unnest.postContent[origPostObject.id];
-		console.log("thisPostContent =");
-		console.log(thisPostContent);
+		// Get post's original content by looking it up by post ID in the postContent object
+		var $thisPostContent = XKit.extensions.unnest.postContent[origPostObject.id];
+		console.log("$obj.find('div.post_body') =");
+		console.log($obj.find("div.post_body"));
 		// Remove post body
 		$obj.find("div.post_body").remove();
-		// Append original post body content
-		$obj.find("div.post_container").append($(thisPostContent));
+		console.log("$(thisPostContent)");
+		console.log($thisPostContent);
+		if ($thisPostContent.find("div.note_wrapper").length > 0) {
+			// Append original post body content
+			$obj.find("div.post_content_inner").append($thisPostContent.clone());
+		}
+		else {
+			// Append original post body content
+			$obj.find("div.post_container").append($thisPostContent.clone());
+		};
 	},
 
 	applyToAll: function() {
