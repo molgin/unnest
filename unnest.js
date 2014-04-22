@@ -11,7 +11,7 @@ XKit.extensions.unnest = new Object({
 
 	preferences: {
 		"toggle": {
-			text: "Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically",
+			text: "[NOT YET IMPLEMENTED, DON'T TOUCH] Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically",
 			default: false,
 			value: false
 		}
@@ -26,12 +26,15 @@ XKit.extensions.unnest = new Object({
 	run: function() {
 		this.running = true;
 		if (XKit.extensions.unnest.preferences.toggle.value) {
-			
+			// Add post listener (enables extension to apply to newly loaded posts when endless scrolling is on)
+			XKit.post_listener.add("unnest", XKit.extensions.unnest.applyToAll);
+			XKit.extensions.unnest.makeButtons();
+
 		}
 		else {
 			// Add post listener (enables extension to apply to newly loaded posts when endless scrolling is on)
 			XKit.post_listener.add("unnest", XKit.extensions.unnest.applyToAll);
-
+			
 			XKit.extensions.unnest.applyToAll();
 			//XKit.extensions.unnest.destroy();
 		};
@@ -133,7 +136,7 @@ XKit.extensions.unnest = new Object({
 		};
 	},
 
-	reNest: function($obj){
+	reNest: function($obj) {
 		// Get post info
 		var origPostObject = XKit.interface.post($obj);
 		// Get post's original content by looking it up by post id in the postContent object
@@ -146,7 +149,7 @@ XKit.extensions.unnest = new Object({
 		$obj.find("div.post_container").append($(thisPostContent));
 	},
 
-	applyToAll: function(){
+	applyToAll: function() {
 		// Iterate over posts
 		$(".post:not('.new_post_buttons'):not('#tumblr_radar')").each( function (i, obj){
 			// Get post info
@@ -166,6 +169,15 @@ XKit.extensions.unnest = new Object({
 			console.log($thisDiv);
 			// Run unNest on the post body div
 			XKit.extensions.unnest.unNest($thisDiv);
+		});
+	},
+
+	makeButtons: function() {
+		XKit.interface.create_control_button("xkit-unnest", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEtJREFUeNpiZICA/wz4ASMDEYCJYbACRiRvMlLqXZp48z81DGHBYijZ3qWqN1koSVfEuuw/NV1GjqGMVA2zUcOGk2Es5ORBXAAgwAD64ggp0tpGJAAAAABJRU5ErkJggg==", "UnNest", function() {
+	        alert("hello world!");
+		});
+		$(XKit.extensions.unnest.posts).each(function() {
+		    XKit.interface.add_control_button(this, "xkit-unnest", "");
 		});
 	}
 });
