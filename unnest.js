@@ -12,8 +12,8 @@ XKit.extensions.unnest = new Object({
 	preferences: {
 		"toggle": {
 			text: "[NOT YET IMPLEMENTED, DON'T TOUCH] Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically",
-			default: false,
-			value: false
+			default: true,
+			value: true
 		}
 	},
 
@@ -27,14 +27,16 @@ XKit.extensions.unnest = new Object({
 		this.running = true;
 		if (XKit.extensions.unnest.preferences.toggle.value) {
 			XKit.interface.create_control_button("xkit-unnest", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEtJREFUeNpiZICA/wz4ASMDEYCJYbACRiRvMlLqXZp48z81DGHBYijZ3qWqN1koSVfEuuw/NV1GjqGMVA2zUcOGk2Es5ORBXAAgwAD64ggp0tpGJAAAAABJRU5ErkJggg==", "UnNest", function() {
-		        var iteration=$(this).data('iteration')||1
+		        	var iteration=$(this).data('iteration')||1
 				switch ( iteration) {
 					case 1:
 						alert("odd");
+						XKit.extensions.unnest.toggleOne(this);
 						break;
 					
 					case 2:
 						alert("even");
+						XKit.extensions.unnest.toggleTwo(this);
 						break;
 				}
 				iteration++;
@@ -195,5 +197,27 @@ XKit.extensions.unnest = new Object({
 			$(this).addClass('unnest-button');
 			XKit.interface.add_control_button(this, "xkit-unnest", "");
 		});
+	},
+
+	toggleOne: function(obj) {
+		console.log("Hello from toggleOne()!");
+		console.log($(obj).attr('data-post-id'))
+		console.log($(obj).parents("div.post_full"));
+		var $postID = $(obj).attr('data-post-id');
+		var $post = $(obj).parents("div.post_full");
+		var $postBody = $post.find("div.post_body");
+		console.log("$postBody =");
+		console.log($postBody);
+		// If a post with this ID has not already been cached
+		if (!(XKit.extensions.unnest.postContent.hasOwnProperty($postID))) {
+			console.log("Hello from if");
+			XKit.extensions.unnest.postContent[$postID] = $postBody.clone();
+		};
+		XKit.extensions.unnest.unNest($postBody);
+	},
+
+	toggleTwo: function(obj) {
+		$post = $(obj).parents("div.post_full");
+		XKit.extensions.unnest.reNest($post);
 	}
-});;
+});
