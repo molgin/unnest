@@ -167,7 +167,7 @@ XKit.extensions.unnest = new Object({
 		$obj.find("div.post_body").remove();
 		console.log("$(thisPostContent)");
 		console.log($thisPostContent);
-		if ($thisPostContent.find("div.note_wrapper").length > 0) {
+		if (($thisPostContent.find("div.note_wrapper").length > 0) || ($obj.find("div.post_media").length > 0)) {
 			// Append original post body content
 			$obj.find("div.post_content_inner").append($thisPostContent.clone());
 		}
