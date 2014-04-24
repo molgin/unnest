@@ -3,6 +3,25 @@
 // Define post divs to match
 var $post = $("div.post_body");
 
+function getTextNodesIn(node, includeWhitespaceNodes) {
+    var textNodes = [], whitespace = /^\s*$/;
+
+    function getTextNodes(node) {
+        if (node.nodeType == 3) {
+            if (includeWhitespaceNodes || !whitespace.test(node.nodeValue)) {
+                textNodes.push(node);
+            }
+        } else {
+            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+                getTextNodes(node.childNodes[i]);
+            }
+        }
+    }
+
+    getTextNodes(node);
+    return textNodes;
+}
+
 // Define function to find an object's innermost blockquote object
 function getInnerQuote($obj) {
 	// Define variable
@@ -40,57 +59,167 @@ function getInnerQuote($obj) {
 	};
 };
 
-// Define a function to un-nest the blockquotes and their attributions
+// // Define a function to un-nest the blockquotes and their attributions
+// function unNest($obj) {
+// 	// Define variable for object's innermost blockquote
+// 	var $innerQuote = getInnerQuote($obj);
+// 	console.log("$innerQuote =");
+// 	console.log($innerQuote);
+// 	// Only make changes if there's actually an inner quote to move
+// 	if ($innerQuote != null) {
+// 		// Add a new div after the object
+// 		$obj.after("<div> </div>");
+// 		// Define variable for new div
+// 		var $nextDiv = $obj.next("div");
+// 		// While there are still blockquotes in the object
+// 		while ($innerQuote != null) {
+// 			// Define variable for innermost blockquote plus its attribution
+// 			var $fullComment = $innerQuote.prev("p").add($innerQuote);
+// 			// Remove full comment
+// 			$fullComment.remove();
+// 			// Add full comment to new div
+// 			$nextDiv.append($fullComment);
+// 			// Reset variable to new innermost blockquote
+// 			$innerQuote = getInnerQuote($obj);
+// 		};
+// 		// If there's anything left in the object (new unattributed comments)
+// 		if ($obj.contents().length > 0) {
+// 			if ($obj.children("div.note_wrapper").length > 0) {
+// 				// Stick them in a variable
+// 				$newComment = $obj.children("div.answer").contents();
+// 			}
+// 			else {
+// 				// Stick them in a variable
+// 				$newComment = $obj.contents();
+// 			}
+// 			// Remove them from the object
+// 			$newComment.remove();
+// 			// Add them to the new div
+// 			$nextDiv.append($newComment);
+// 		};
+// 		console.log("$obj.children('div.answer').length =");
+// 		console.log($obj.find("div"));
+// 		if ($obj.children("div.answer").length > 0) {
+// 			$obj.children("div.answer.post_info").append($nextDiv.contents());
+// 		}
+// 		else {
+// 			// Put everything from the new div back in the original object
+// 			$obj.append($nextDiv.contents());
+// 		}
+// 		// Get rid of the new div
+// 		$nextDiv.remove();
+// 	};
+// };
+
+var chron = true;
+
 function unNest($obj) {
-	// Define variable for object's innermost blockquote
-	var $innerQuote = getInnerQuote($obj);
-	console.log("$innerQuote =");
-	console.log($innerQuote);
-	// Only make changes if there's actually an inner quote to move
-	if ($innerQuote != null) {
-		// Add a new div after the object
-		$obj.after("<div> </div>");
-		// Define variable for new div
-		var $nextDiv = $obj.next("div");
-		// While there are still blockquotes in the object
-		while ($innerQuote != null) {
-			// Define variable for innermost blockquote plus its attribution
-			var $fullComment = $innerQuote.prev("p").add($innerQuote);
-			// Remove full comment
-			$fullComment.remove();
-			// Add full comment to new div
-			$nextDiv.append($fullComment);
-			// Reset variable to new innermost blockquote
-			$innerQuote = getInnerQuote($obj);
-		};
-		// If there's anything left in the object (new unattributed comments)
-		if ($obj.contents().length > 0) {
-			if ($obj.children("div.note_wrapper").length > 0) {
-				// Stick them in a variable
-				$newComment = $obj.children("div.answer").contents();
+		// Define variable for object's innermost blockquote
+		var $innerQuote = getInnerQuote($obj);
+		//console.log("$innerQuote =");
+		//console.log($innerQuote);
+		// Only make changes if there's actually an inner quote to move
+		if ($innerQuote != null) {
+			var isAskPost = $obj.children("div.note_wrapper").length > 0;
+			console.log(isAskPost);
+			if (!chron) {
+				// Wrap any text nodes in p tags
+				var textnodes = getTextNodesIn($obj[0]);
+				for(var i=0; i < textnodes.length; i++){
+				    if ($(textnodes[i]).parent().is(":not('p'):not('a'):not('span')")){
+				        $(textnodes[i]).wrap("<p>");
+				    };
+				};
+				// If it's a godforsaken ask post
+				if (isAskPost) {
+					if ($obj.children("div.answer").children().eq(1).is(":not('blockquote')")) {
+						$obj.children("div.answer").children().eq(0).addClass("unnestTopMost");
+						$obj.children("div.answer").children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+					};
+				}
+				else {
+					if ($obj.children().eq(1).is(":not('blockquote')")) {
+						$obj.children().eq(0).addClass("unnestTopMost");
+						$obj.children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+					};
+				};
+			};
+			// Add a new div after the object
+			$obj.after("<div> </div>");
+			// Define variable for new div
+			var $nextDiv = $obj.next("div");
+			// While there are still blockquotes in the object
+			while ($innerQuote != null) {
+				// Define variable for innermost blockquote plus its attribution
+				var $attrib = $innerQuote.prev("p");
+				var $fullComment = $attrib.add($innerQuote);
+				if (!chron) {
+					if ($attrib.parent().is("blockquote")) {
+						$attrib.prevAll().addClass("unnestTop");
+
+					};
+					var $unnestTops = $innerQuote.children(".unnestTop");
+					if ($unnestTops.length > 0) {
+						$unnestTops.wrap("<blockquote />");
+						var $attribClone = $attrib.clone();
+						$nextDiv.prepend($unnestTops.parent());
+						$nextDiv.prepend($attribClone);
+					}
+				};
+
+				// Remove full comment
+				$fullComment.remove();
+				// Add full comment to new div
+				$nextDiv.append($fullComment);
+				// Reset variable to new innermost blockquote
+				$innerQuote = getInnerQuote($obj);
+			};
+			// If there's anything left in the object (new unattributed comments)
+			if ($obj.contents().length > 0) {
+				if (!chron) {
+					// If it's a godforsaken ask post
+					if (isAskPost) {
+						if ($obj.children("div.answer").children(".unnestTopMost").length > 0) {
+							$newTopComment = $obj.children("div.answer").children(".unnestTopMost");
+							$newTopComment.remove();
+							$nextDiv.prepend($newTopComment);
+						};
+					}
+					else {
+						if ($obj.children(".unnestTopMost").length > 0) {
+							$newTopComment = $obj.children(".unnestTopMost");
+							$newTopComment.remove();
+							$nextDiv.prepend($newTopComment);
+						};
+					};
+				};
+				// If it's a godforsaken ask post
+				if (isAskPost) {
+					// Stick that in a variable
+					$newComment = $obj.children("div.answer").contents();
+				}
+				else {
+					// Stick that in a variable
+					$newComment = $obj.contents();
+				}
+				// Remove them from the object
+				$newComment.remove();
+				// Add them to the new div
+				$nextDiv.append($newComment);
+			};
+			// Again if it's an ask post
+			if (isAskPost) {
+				// Put everything from the new div into the appropriate special ask post div because ask posts are fussy
+				$obj.children("div.answer.post_info").append($nextDiv.contents());
 			}
 			else {
-				// Stick them in a variable
-				$newComment = $obj.contents();
+				// Put everything from the new div back in the original object
+				$obj.append($nextDiv.contents());
 			}
-			// Remove them from the object
-			$newComment.remove();
-			// Add them to the new div
-			$nextDiv.append($newComment);
+			// Get rid of the new div
+			$nextDiv.remove();
 		};
-		console.log("$obj.children('div.answer').length =");
-		console.log($obj.find("div"));
-		if ($obj.children("div.answer").length > 0) {
-			$obj.children("div.answer.post_info").append($nextDiv.contents());
-		}
-		else {
-			// Put everything from the new div back in the original object
-			$obj.append($nextDiv.contents());
-		}
-		// Get rid of the new div
-		$nextDiv.remove();
-	};
-};
+	}
 
 // Iterate over the matching divs and unnest them
 $("button#unnest").click(function(){
@@ -101,5 +230,6 @@ $("button#unnest").click(function(){
 
 // unNest($("div.copy"));
 
-//NOTE TO SELF if dynamic variable names are too hard i could possibly store info in an object w/ post id as key??
+//$("body").append($("p#butt-test").prevSibling());
+
 

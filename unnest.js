@@ -1,9 +1,9 @@
-//* TITLE Unnest **//
+//* TITLE UnNest **//
 //* VERSION 1.0 REV A **//
 //* DESCRIPTION Flattens Tumblr's nested comments so you can read each poster's URL and comment in sequential order, as God intended. **//
 //* DEVELOPER molgin **//
 //* FRAME false **//
-//* BETA false **//
+//* BETA true **//
 
 XKit.extensions.unnest = new Object({
 
@@ -11,7 +11,13 @@ XKit.extensions.unnest = new Object({
 
 	preferences: {
 		"toggle": {
-			text: "Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically",
+			text: "Use a button to toggle nesting on individual posts, rather than unnesting all posts automatically.",
+			default: false,
+			value: false
+		},
+
+		"chron": {
+			text: "Unnest comments in the strict chronological order in which they were added, rather than preserving their original top-to-bottom order. (Useful info such as content warnings and image descriptions may appear farther down in the post than originally intended.)",
 			default: false,
 			value: false
 		}
@@ -26,6 +32,7 @@ XKit.extensions.unnest = new Object({
 	// This is what executes when the extension runs!
 	run: function() {
 		this.running = true;
+		// If toggle option is selected
 		if (XKit.extensions.unnest.preferences.toggle.value) {
 			// Create button and specify what it should do when clicked
 			XKit.interface.create_control_button("xkit-unnest", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAEtJREFUeNpiZICA/wz4ASMDEYCJYbACRiRvMlLqXZp48z81DGHBYijZ3qWqN1koSVfEuuw/NV1GjqGMVA2zUcOGk2Es5ORBXAAgwAD64ggp0tpGJAAAAABJRU5ErkJggg==", "UnNest", function() {
@@ -56,7 +63,6 @@ XKit.extensions.unnest = new Object({
 		else {
 			// Add post listener (enables extension to apply to newly loaded posts when endless scrolling is on)
 			XKit.post_listener.add("unnest", XKit.extensions.unnest.applyToAll);
-			
 			XKit.extensions.unnest.applyToAll();
 			//XKit.extensions.unnest.destroy();
 		};
@@ -87,8 +93,6 @@ XKit.extensions.unnest = new Object({
 			// Set variable to the results of the same selection but testing for "/post/" instead of "tumblr.com" to catch users with custom domains. These children may not exist but that's intended.
 			$blockKids = $obj.children("p:contains(':'):has(a[href*='/post/']):not(:contains(' '))+blockquote");
 		};
-		// Define variable as object's direct children that are blockquotes, as long as they have a previous adjacent p element that has an a element child of class .tumblr_blog
-		// var $blockKids = $obj.children("p:contains(':'):has(a[href*='tumblr.com']):not(:contains(' '))+blockquote");
 		// If object has a direct blockquote child
 		if ($blockKids.length > 0) {
 			// Run function recursively on that child
@@ -151,6 +155,114 @@ XKit.extensions.unnest = new Object({
 			};
 			// Again if it's an ask post
 			if ($obj.children("div.answer").length > 0) {
+				// Put everything from the new div into the appropriate special ask post div because ask posts are fussy
+				$obj.children("div.answer.post_info").append($nextDiv.contents());
+			}
+			else {
+				// Put everything from the new div back in the original object
+				$obj.append($nextDiv.contents());
+			}
+			// Get rid of the new div
+			$nextDiv.remove();
+		};
+	},
+
+	unNest: function($obj) {
+		// Define variable for object's innermost blockquote
+		var $innerQuote = XKit.extensions.unnest.getInnerQuote($obj);
+		//console.log("$innerQuote =");
+		//console.log($innerQuote);
+		// Only make changes if there's actually an inner quote to move
+		if ($innerQuote != null) {
+			var isAskPost = $obj.children("div.note_wrapper").length > 0;
+			console.log(isAskPost);
+			if (!XKit.extensions.unnest.chron) {
+				// Wrap any text nodes in p tags
+				var textnodes = XKit.extensions.unnest.getTextNodesIn($obj[0]);
+				for(var i=0; i < textnodes.length; i++){
+				    if ($(textnodes[i]).parent().is("div") || $(textnodes[i]).parent().is("blockquote")){
+				        $(textnodes[i]).wrap("<p>");
+				    };
+				};
+				// If it's a godforsaken ask post
+				if (isAskPost) {
+					if ($obj.children("div.answer").children().eq(1).is(":not('blockquote')")) {
+						$obj.children("div.answer").children().eq(0).addClass("unnestTopMost");
+						$obj.children("div.answer").children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+					};
+				}
+				else {
+					if ($obj.children().eq(1).is(":not('blockquote')")) {
+						$obj.children().eq(0).addClass("unnestTopMost");
+						$obj.children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+					};
+				};
+			};
+			// Add a new div after the object
+			$obj.after("<div> </div>");
+			// Define variable for new div
+			var $nextDiv = $obj.next("div");
+			// While there are still blockquotes in the object
+			while ($innerQuote != null) {
+				// Define variable for innermost blockquote plus its attribution
+				var $attrib = $innerQuote.prev("p");
+				var $fullComment = $attrib.add($innerQuote);
+				if (!XKit.extensions.unnest.chron) {
+					if ($attrib.parent().is("blockquote")) {
+						$attrib.prevAll().addClass("unnestTop");
+
+					};
+					var $unnestTops = $innerQuote.children(".unnestTop");
+					if ($unnestTops.length > 0) {
+						$unnestTops.wrap("<blockquote />");
+						var $attribClone = $attrib.clone();
+						$nextDiv.prepend($unnestTops.parent());
+						$nextDiv.prepend($attribClone);
+					}
+				};
+
+				// Remove full comment
+				$fullComment.remove();
+				// Add full comment to new div
+				$nextDiv.append($fullComment);
+				// Reset variable to new innermost blockquote
+				$innerQuote = XKit.extensions.unnest.getInnerQuote($obj);
+			};
+			// If there's anything left in the object (new unattributed comments)
+			if ($obj.contents().length > 0) {
+				if (!XKit.extensions.unnest.chron) {
+					// If it's a godforsaken ask post
+					if (isAskPost) {
+						if ($obj.children("div.answer").children(".unnestTopMost").length > 0) {
+							$newTopComment = $obj.children("div.answer").children(".unnestTopMost");
+							$newTopComment.remove();
+							$nextDiv.prepend($newTopComment);
+						};
+					}
+					else {
+						if ($obj.children(".unnestTopMost").length > 0) {
+							$newTopComment = $obj.children(".unnestTopMost");
+							$newTopComment.remove();
+							$nextDiv.prepend($newTopComment);
+						};
+					};
+				};
+				// If it's a godforsaken ask post
+				if (isAskPost) {
+					// Stick that in a variable
+					$newComment = $obj.children("div.answer").contents();
+				}
+				else {
+					// Stick that in a variable
+					$newComment = $obj.contents();
+				}
+				// Remove them from the object
+				$newComment.remove();
+				// Add them to the new div
+				$nextDiv.append($newComment);
+			};
+			// Again if it's an ask post
+			if (isAskPost) {
 				// Put everything from the new div into the appropriate special ask post div because ask posts are fussy
 				$obj.children("div.answer.post_info").append($nextDiv.contents());
 			}
@@ -245,5 +357,25 @@ XKit.extensions.unnest = new Object({
 		$post = $(obj).parents("div.post_full");
 		// Renest the post
 		XKit.extensions.unnest.reNest($post);
+	},
+
+	// Makes it possible to find text nodes and wrap them with p tags so they don't gum up the works. Credit to Arash Milani on Stack Overflow
+	getTextNodesIn: function(node, includeWhitespaceNodes) {
+	    var textNodes = [], whitespace = /^\s*$/;
+
+	    function getTextNodes(node) {
+	        if (node.nodeType == 3) {
+	            if (includeWhitespaceNodes || !whitespace.test(node.nodeValue)) {
+	                textNodes.push(node);
+	            }
+	        } else {
+	            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+	                getTextNodes(node.childNodes[i]);
+	            }
+	        }
+	    }
+
+	    getTextNodes(node);
+	    return textNodes;
 	}
 });
