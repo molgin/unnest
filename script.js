@@ -44,6 +44,25 @@ function hasPrevSibs(node) {
 	};
 };
 
+function getPrevTextNodes(node) {
+	var textNodes = [], whitespace = /^\s*$/;
+	var prevSib = node.previousSibling;
+
+	function getTextNodes(node) {
+        if (node.nodeType == 3) {
+            if (!whitespace.test(node.nodeValue)) {
+                textNodes.push(node);
+            };
+        };
+        if (node.previousSibling != null) {
+        	getTextNodes(node.previousSibling);
+        };
+    }
+
+    getTextNodes(prevSib);
+    return textNodes;
+};
+
 // Define function to find an object's innermost blockquote object
 function getInnerQuote($obj) {
 	// Define variable
@@ -255,3 +274,12 @@ $("button#unnest").click(function(){
 //$("body").append($("p#butt-test").prevSibling());
 
 console.log(hasPrevSibs($("#test1")[0]));
+console.log(getPrevTextNodes($("#test1")[0]));
+
+var textnodes = (getPrevTextNodes($("#test1")[0]));
+for(var i=0; i < textnodes.length; i++){
+    if ($(textnodes[i]).parent().is(":not('p'):not('a'):not('span')")){
+        $(textnodes[i]).wrap("<p>");
+    };
+};
+
