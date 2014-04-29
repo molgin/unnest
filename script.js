@@ -164,24 +164,43 @@ function unNest($obj) {
 			var isAskPost = $obj.children("div.note_wrapper").length > 0;
 			console.log(isAskPost);
 			if (!chron) {
-				// Wrap any text nodes in p tags
-				var textnodes = getTextNodesIn($obj[0]);
-				for(var i=0; i < textnodes.length; i++){
-				    if ($(textnodes[i]).parent().is(":not('p'):not('a'):not('span')")){
-				        $(textnodes[i]).wrap("<p>");
-				    };
-				};
+				// // Wrap any text nodes in p tags
+				// var textnodes = getTextNodesIn($obj[0]);
+				// for(var i=0; i < textnodes.length; i++){
+				//     if ($(textnodes[i]).parent().is(":not('p'):not('a'):not('span')")){
+				//         $(textnodes[i]).wrap("<p>");
+				//     };
+				//};
 				// If it's a godforsaken ask post
+				console.log("1");
+				// if (hasPrevSibs($obj.children("blockquote").prev()[0])) {
+				// 	var textNodes = (getPrevTextNodes($obj.children("blockquote").prev()[0]));
+				// 	for(var i=0; i < textNodes.length; i++){
+				// 	    $(textNodes[i]).wrap("<p>");
+				// 	};
+				// };
 				if (isAskPost) {
-					if ($obj.children("div.answer").children().eq(1).is(":not('blockquote')")) {
-						$obj.children("div.answer").children().eq(0).addClass("unnestTopMost");
-						$obj.children("div.answer").children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+					if (hasPrevSibs($obj.children("div.answer").children("blockquote").prev()[0])) {
+						var textNodes = (getPrevTextNodes($obj.children("div.answer").children("blockquote").prev()[0]));
+						for(var i=0; i < textNodes.length; i++){
+						    $(textNodes[i]).wrap("<p>");
+						};
+						if ($obj.children("div.answer").children().eq(1).is(":not('blockquote')")) {
+							$obj.children("div.answer").children().eq(0).addClass("unnestTopMost");
+							$obj.children("div.answer").children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+						};
 					};
 				}
 				else {
-					if ($obj.children().eq(1).is(":not('blockquote')")) {
-						$obj.children().eq(0).addClass("unnestTopMost");
-						$obj.children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+					if (hasPrevSibs($obj.children("blockquote").prev()[0])) {
+						var textNodes = (getPrevTextNodes($obj.children("blockquote").prev()[0]));
+						for(var i=0; i < textNodes.length; i++){
+						    $(textNodes[i]).wrap("<p>");
+						};
+						if ($obj.children().eq(1).is(":not('blockquote')")) {
+							$obj.children().eq(0).addClass("unnestTopMost");
+							$obj.children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+						};
 					};
 				};
 			};
@@ -196,7 +215,14 @@ function unNest($obj) {
 				var $fullComment = $attrib.add($innerQuote);
 				if (!chron) {
 					if ($attrib.parent().is("blockquote")) {
-						$attrib.prevAll().addClass("unnestTop");
+						console.log("2");
+						if (hasPrevSibs($attrib[0])) {
+							var textNodes = (getPrevTextNodes($attrib[0]));
+							for(var i=0; i < textNodes.length; i++){
+							    $(textNodes[i]).wrap("<p>");
+							};
+							$attrib.prevAll().addClass("unnestTop");
+						};
 
 					};
 					var $unnestTops = $innerQuote.children(".unnestTop");
@@ -276,10 +302,51 @@ $("button#unnest").click(function(){
 console.log(hasPrevSibs($("#test1")[0]));
 console.log(getPrevTextNodes($("#test1")[0]));
 
-var textnodes = (getPrevTextNodes($("#test1")[0]));
-for(var i=0; i < textnodes.length; i++){
-    if ($(textnodes[i]).parent().is(":not('p'):not('a'):not('span')")){
-        $(textnodes[i]).wrap("<p>");
-    };
-};
+// var textnodes = (getPrevTextNodes($("#test1")[0]));
+// for(var i=0; i < textnodes.length; i++){
+//     //if ($(textnodes[i]).parent().is(":not('p'):not('a'):not('span')")){
+//         $(textnodes[i]).wrap("<p>");
+//     //};
+// };
+
+
+// TO DO LIST
+
+// Merge newest unNest into unnest.js and test it on Tumblr 
+// to make sure I haven't horribly broken anything. 
+// Then commit.
+
+// Then start work restructuring unNest. It should test early on
+// whether the post is an ask post, then redefine $obj as
+// $obj.children("div.answer"). Then I should be able to remove 
+// all the isAskPost tests and behavior and have it still work.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
