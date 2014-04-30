@@ -163,6 +163,9 @@ function unNest($obj) {
 		if ($innerQuote != null) {
 			var isAskPost = $obj.children("div.note_wrapper").length > 0;
 			console.log(isAskPost);
+			if (isAskPost) {
+				$obj = $obj.children("div.answer");
+			};
 			if (!chron) {
 				// // Wrap any text nodes in p tags
 				// var textnodes = getTextNodesIn($obj[0]);
@@ -179,19 +182,19 @@ function unNest($obj) {
 				// 	    $(textNodes[i]).wrap("<p>");
 				// 	};
 				// };
-				if (isAskPost) {
-					if (hasPrevSibs($obj.children("div.answer").children("blockquote").prev()[0])) {
-						var textNodes = (getPrevTextNodes($obj.children("div.answer").children("blockquote").prev()[0]));
-						for(var i=0; i < textNodes.length; i++){
-						    $(textNodes[i]).wrap("<p>");
-						};
-						if ($obj.children("div.answer").children().eq(1).is(":not('blockquote')")) {
-							$obj.children("div.answer").children().eq(0).addClass("unnestTopMost");
-							$obj.children("div.answer").children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
-						};
-					};
-				}
-				else {
+				// if (isAskPost) {
+				// 	if (hasPrevSibs($obj.children("div.answer").children("blockquote").prev()[0])) {
+				// 		var textNodes = (getPrevTextNodes($obj.children("div.answer").children("blockquote").prev()[0]));
+				// 		for(var i=0; i < textNodes.length; i++){
+				// 		    $(textNodes[i]).wrap("<p>");
+				// 		};
+				// 		if ($obj.children("div.answer").children().eq(1).is(":not('blockquote')")) {
+				// 			$obj.children("div.answer").children().eq(0).addClass("unnestTopMost");
+				// 			$obj.children("div.answer").children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
+				// 		};
+				// 	};
+				// }
+				// else {
 					if (hasPrevSibs($obj.children("blockquote").prev()[0])) {
 						var textNodes = (getPrevTextNodes($obj.children("blockquote").prev()[0]));
 						for(var i=0; i < textNodes.length; i++){
@@ -202,7 +205,7 @@ function unNest($obj) {
 							$obj.children().eq(0).nextUntil("blockquote").filter(":not(':last')").addClass("unnestTopMost");
 						};
 					};
-				};
+				// };
 			};
 			// Add a new div after the object
 			$obj.after("<div> </div>");
@@ -217,15 +220,22 @@ function unNest($obj) {
 					if ($attrib.parent().is("blockquote")) {
 						console.log("2");
 						if (hasPrevSibs($attrib[0])) {
+							console.log("hi");
 							var textNodes = (getPrevTextNodes($attrib[0]));
 							for(var i=0; i < textNodes.length; i++){
 							    $(textNodes[i]).wrap("<p>");
 							};
 							$attrib.prevAll().addClass("unnestTop");
+							// var $unnestTops = $innerQuote.children(".unnestTop");
+							// $unnestTops.wrap("<blockquote />");
+							// var $attribClone = $attrib.clone();
+							// $nextDiv.prepend($unnestTops.parent());
+							// $nextDiv.prepend($attribClone);
 						};
 
 					};
 					var $unnestTops = $innerQuote.children(".unnestTop");
+					console.log($unnestTops);
 					if ($unnestTops.length > 0) {
 						$unnestTops.wrap("<blockquote />");
 						var $attribClone = $attrib.clone();
@@ -245,44 +255,44 @@ function unNest($obj) {
 			if ($obj.contents().length > 0) {
 				if (!chron) {
 					// If it's a godforsaken ask post
-					if (isAskPost) {
-						if ($obj.children("div.answer").children(".unnestTopMost").length > 0) {
-							$newTopComment = $obj.children("div.answer").children(".unnestTopMost");
-							$newTopComment.remove();
-							$nextDiv.prepend($newTopComment);
-						};
-					}
-					else {
+					// if (isAskPost) {
+					// 	if ($obj.children("div.answer").children(".unnestTopMost").length > 0) {
+					// 		$newTopComment = $obj.children("div.answer").children(".unnestTopMost");
+					// 		$newTopComment.remove();
+					// 		$nextDiv.prepend($newTopComment);
+					// 	};
+					// }
+					// else {
 						if ($obj.children(".unnestTopMost").length > 0) {
 							$newTopComment = $obj.children(".unnestTopMost");
 							$newTopComment.remove();
 							$nextDiv.prepend($newTopComment);
 						};
-					};
+					// };
 				};
 				// If it's a godforsaken ask post
-				if (isAskPost) {
-					// Stick that in a variable
-					$newComment = $obj.children("div.answer").contents();
-				}
-				else {
+				// if (isAskPost) {
+				// 	// Stick that in a variable
+				// 	$newComment = $obj.children("div.answer").contents();
+				// }
+				// else {
 					// Stick that in a variable
 					$newComment = $obj.contents();
-				}
+				// }
 				// Remove them from the object
 				$newComment.remove();
 				// Add them to the new div
 				$nextDiv.append($newComment);
 			};
 			// Again if it's an ask post
-			if (isAskPost) {
-				// Put everything from the new div into the appropriate special ask post div because ask posts are fussy
-				$obj.children("div.answer.post_info").append($nextDiv.contents());
-			}
-			else {
+			// if (isAskPost) {
+			// 	// Put everything from the new div into the appropriate special ask post div because ask posts are fussy
+			// 	$obj.children("div.answer.post_info").append($nextDiv.contents());
+			// }
+			// else {
 				// Put everything from the new div back in the original object
 				$obj.append($nextDiv.contents());
-			}
+			// }
 			// Get rid of the new div
 			$nextDiv.remove();
 		};
@@ -312,14 +322,21 @@ console.log(getPrevTextNodes($("#test1")[0]));
 
 // TO DO LIST
 
-// Merge newest unNest into unnest.js and test it on Tumblr 
-// to make sure I haven't horribly broken anything. 
-// Then commit.
+// Clean up unnest.js and commit.
+//
+// Comment code.
+//
+// Probably make it so that it adds a class to posts it unnests
+// and then only unnests posts that don't have that class. Not sure
+// exactly what difference this makes but it's XKit best practice.
+//
+// Implement the thing where it hides empty reblogs and you can
+// click to show them.
+//
+// Implement the three basic modes it should have
+//
 
-// Then start work restructuring unNest. It should test early on
-// whether the post is an ask post, then redefine $obj as
-// $obj.children("div.answer"). Then I should be able to remove 
-// all the isAskPost tests and behavior and have it still work.
+
 
 
 
