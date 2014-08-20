@@ -71,6 +71,13 @@ XKit.extensions.unnest = new Object({
 		};
 	},
 
+	// Makes sure extension still works in the new sidebar
+	frame_run: function() {
+		if (typeof XKit.page.peepr != "undefined" && XKit.page.peepr == true) {
+			XKit.extensions.unnest.run();	
+		};
+	},
+
 	// This is what executes when the extension is disabled!
 	destroy: function() {
 		this.running = false;
@@ -239,7 +246,7 @@ XKit.extensions.unnest = new Object({
 		// If it's a fussy ask post or photo/video/audio post
 		if (($thisPostContent.find("div.note_wrapper").length > 0) || ($obj.find("div.post_media").length > 0)) {
 			// Append original post body content back into the appropriate special div
-			$obj.find("div.post_content_inner").append($thisPostContent.clone());
+			$obj.find("div.post_content").append($thisPostContent.clone());
 		}
 		else {
 			// Append original post body content
@@ -286,8 +293,16 @@ XKit.extensions.unnest = new Object({
 		//console.log($(obj).parents("div.post_full"));
 		// Define variable as selected post ID, which is included as as attribute of the button itself
 		var $postID = $(obj).attr('data-post-id');
-		// Define variable as the outermost parent object of the post that XKit likes to work with
-		var $post = $(obj).parents("div.post_full");
+		// Check if we're in the new sidebar
+		if (XKit.page.peepr == true) {
+			// Define variable as a different special sidebar div and get to it a different way
+			// because the sidebar breaks our obj for some reason
+			var $post = $(".post_chrome[data-post-id='" + $postID + "']");
+		}
+		else {
+			// Define variable as the outermost parent object of the post that XKit likes to work with
+			var $post = $(obj).parents("div.post_full");
+		};
 		// Define variable as the .post_body div that unNest works with
 		var $postBody = $post.find("div.post_body");
 		//console.log("$postBody =");
@@ -303,8 +318,16 @@ XKit.extensions.unnest = new Object({
 	},
 
 	toggleTwo: function(obj) {
-		// Traverse up from the button to the actual main post div and put that in a variable
-		$post = $(obj).parents("div.post_full");
+		// Check if we're in the new sidebar
+		if (XKit.page.peepr == true) {
+			var $postID = $(obj).attr('data-post-id');
+			// Define variable as a different special sidebar div and get to it a different way
+			var $post = $(".post_chrome[data-post-id='" + $postID + "']");
+		}
+		else {
+			// Traverse up from the button to the actual main post div and put that in a variable
+			var $post = $(obj).parents("div.post_full");
+		};
 		// Renest the post
 		XKit.extensions.unnest.reNest($post);
 	},
