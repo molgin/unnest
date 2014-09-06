@@ -35,6 +35,10 @@ XKit.extensions.unnest = new Object({
 	// This is what executes when the extension runs!
 	run: function() {
 		this.running = true;
+		// Make sure all buttons display on same line in the new sidebar
+		if (XKit.page.peepr === true) {
+			XKit.tools.add_css(".indash_blog .post_controls { min-width: 200px !important; }", "unnest");
+		};
 		// If toggle option is selected
 		if (XKit.extensions.unnest.preferences.toggle.value) {
 			// Create button and specify what it should do when clicked
@@ -93,6 +97,7 @@ XKit.extensions.unnest = new Object({
 		// Remove classes
 		$(".unnestTop").removeClass("unnestTop");
 		$(".unnestTopMost").removeClass("unnestTopMost");
+		XKit.tools.remove_css("unnest");
 	},
 
 	getInnerQuote: function($obj) {
@@ -297,7 +302,7 @@ XKit.extensions.unnest = new Object({
 		if (XKit.page.peepr == true) {
 			// Define variable as a different special sidebar div and get to it a different way
 			// because the sidebar breaks our obj for some reason
-			var $post = $(".post_chrome[data-post-id='" + $postID + "']");
+			var $post = $(".post_chrome[data-post-id='if (XKit.page.peepr === true) {" + $postID + "']");
 		}
 		else {
 			// Define variable as the outermost parent object of the post that XKit likes to work with
@@ -319,7 +324,7 @@ XKit.extensions.unnest = new Object({
 
 	toggleTwo: function(obj) {
 		// Check if we're in the new sidebar
-		if (XKit.page.peepr == true) {
+		if (XKit.page.peepr === true) {
 			var $postID = $(obj).attr('data-post-id');
 			// Define variable as a different special sidebar div and get to it a different way
 			var $post = $(".post_chrome[data-post-id='" + $postID + "']");
